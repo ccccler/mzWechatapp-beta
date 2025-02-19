@@ -1,0 +1,262 @@
+const app = getApp();
+
+Page({
+  data: {
+    messageList: [],
+    inputMessage: '',
+    loading: false,
+    scrollToMessage: '',
+    sessionId: '',
+    backgroundImage: '/images/chat-bg.jpg',
+    analyzing: false
+  },
+
+  onLoad: function() {
+    const that = this;
+    console.log('chat页面加载');
+    
+    // 获取事件通道
+    const eventChannel = this.getOpenerEventChannel();
+    eventChannel.on('acceptDataFromOpenerPage', function(data) {
+      console.log('收到消息数据:', data);
+      if (data && data.message) {
+        // 设置会话ID
+        that.setData({
+          sessionId: data.sessionId || `session_${Date.now()}`
+        });
+        
+        if (data.type === 'face-analysis' || data.isHistoryChat) {
+          // 如果是面部分析结果或历史对话，显示为AI消息
+          that.setData({
+            messageList: [{
+              type: 'assistant',
+              content: data.message
+            }]
+          });
+        } else {
+          // 其他情况（如提示词点击）作为用户消息处理
+          const userMessage = {
+            type: 'user',
+            content: data.message
+          };
+          
+          that.setData({
+            messageList: [userMessage],
+            loading: true
+          });
+          
+          // 自动发送到服务器获取回复
+          that.sendToServer(data.message);
+        }
+      }
+    });
+  },
+
+  onShow: function() {
+    const savedMessage = wx.getStorageSync('chatInputMessage') || '';
+    if (savedMessage !== this.data.inputMessage) {
+      this.setData({
+        inputMessage: savedMessage
+      });
+    }
+  },
+
+  onInputChange: function(e) {
+    const value = e.detail.value;
+    this.setData({
+      inputMessage: value
+    });
+    wx.setStorageSync('chatInputMessage', value);
+  },
+
+  sendMessage: function() {
+    const { inputMessage } = this.data;
+    if (!inputMessage.trim()) return;
+
+    // 添加用户消息
+    const userMessage = {
+      type: 'user',
+      content: inputMessage
+    };
+
+    this.setData({
+      messageList: [...this.data.messageList, userMessage],
+      inputMessage: '',
+      loading: true
+    });
+
+    // 发送到服务器
+    this.sendToServer(userMessage.content);
+    
+    // 滚动到底部
+    this.scrollToBottom();
+  },
+
+  // 发送消息到服务器的统一方法
+  sendToServer: function(message) {
+    const that = this;
+    console.log('发送消息到服务器:', message);
+    
+    wx.request({
+      url: 'http://127.0.0.1:8000/chat',
+      method: 'POST',
+      data: {
+        question: message,
+        sessionId: that.data.sessionId
+      },
+      success: function(res) {
+        console.log('服务器响应:', res.data);
+        
+        // 添加AI回复消息
+        that.setData({
+          messageList: [...that.data.messageList, {
+            type: 'assistant',
+            content: res.data
+          }],
+          loading: false
+        });
+        
+        // 更新最近对话记录
+        let recentChats = wx.getStorageSync('recentChats') || [];
+        const sessionInfo = {
+          sessionId: that.data.sessionId,
+          lastMessage: message,
+          time: new Date().toLocaleTimeString()
+        };
+        
+        // 检查是否已存在相同sessionId的记录
+        const existingIndex = recentChats.findIndex(chat => chat.sessionId === that.data.sessionId);
+        if (existingIndex !== -1) {
+          recentChats[existingIndex] = sessionInfo;
+        } else {
+          recentChats.unshift(sessionInfo);
+        }
+        
+        wx.setStorageSync('recentChats', recentChats);
+        
+        // 滚动到底部
+        that.scrollToBottom();
+      },
+      fail: function(error) {
+        console.error('请求失败:', error);
+        wx.showToast({
+          title: '发送失败',
+          icon: 'none'
+        });
+        that.setData({ loading: false });
+      }
+    });
+  },
+
+  scrollToBottom: function() {
+    const query = wx.createSelectorQuery();
+    query.select('#chatScroll').boundingClientRect();
+    query.selectViewport().scrollOffset();
+    query.exec(function(res) {
+      if (res[0] && res[1]) {
+        wx.pageScrollTo({
+          scrollTop: res[0].bottom,
+          duration: 300
+        });
+      }
+    });
+  },
+
+  onInputFocus: function() {
+    this.scrollToBottom();
+  },
+
+  onInputBlur: function() {
+    wx.setStorageSync('chatInputMessage', this.data.inputMessage);
+  },
+
+  onInputConfirm: function(e) {
+    this.sendMessage();
+  },
+
+  onUnload: function() {
+    wx.removeStorageSync('chatInputMessage');
+  },
+
+  // 处理图片上传
+  goToFaceAnalysis: function() {
+    const that = this;
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: function(res) {
+        that.setData({ analyzing: true });
+        console.log('选择图片成功:', res.tempFilePaths[0]);
+        
+        wx.uploadFile({
+          url: 'http://127.0.0.1:8000/chat',
+          filePath: res.tempFilePaths[0],
+          name: 'image',
+          success: function(uploadRes) {
+            console.log('上传成功，收到响应:', uploadRes.data);
+            try {
+              const response = JSON.parse(uploadRes.data);
+              
+              // 添加到消息列表
+              that.setData({
+                messageList: [...that.data.messageList, {
+                  type: 'user',
+                  content: '[图片]'
+                }, {
+                  type: 'assistant',
+                  content: response.message
+                }],
+                analyzing: false
+              });
+
+              // 更新最近对话记录
+              let recentChats = wx.getStorageSync('recentChats') || [];
+              const sessionInfo = {
+                sessionId: that.data.sessionId,
+                lastMessage: '[图片分析]',
+                time: new Date().toLocaleTimeString()
+              };
+              
+              // 检查是否已存在相同sessionId的记录
+              const existingIndex = recentChats.findIndex(chat => chat.sessionId === that.data.sessionId);
+              if (existingIndex !== -1) {
+                recentChats[existingIndex] = sessionInfo;
+              } else {
+                recentChats.unshift(sessionInfo);
+              }
+              
+              wx.setStorageSync('recentChats', recentChats);
+              
+              // 滚动到底部
+              that.scrollToBottom();
+
+            } catch (error) {
+              console.error('解析响应数据失败:', error);
+              that.setData({ analyzing: false });
+              wx.showToast({
+                title: '分析失败',
+                icon: 'none'
+              });
+            }
+          },
+          fail: function(error) {
+            console.error('上传失败:', error);
+            that.setData({ analyzing: false });
+            wx.showToast({
+              title: '上传失败',
+              icon: 'none'
+            });
+          }
+        });
+      },
+      fail: function(error) {
+        console.error('选择图片失败:', error);
+        wx.showToast({
+          title: '选择图片失败',
+          icon: 'none'
+        });
+      }
+    });
+  }
+});

@@ -1,0 +1,87 @@
+<view class="container" style="background-image: url('/images/chat-bg.jpg')">
+  <!-- AI头像和介绍 -->
+  <view class="ai-intro">
+    <image class="ai-avatar" src="/images/ai-avatar.png" mode="aspectFit"></image>
+    <view class="intro-text">
+      <text class="greeting">您好，我是您的智能美妆助手</text>
+      <text class="description">可以叫我小美，我具备肤质识别、皮肤问题检测、护肤品推荐等能力。期待与您共同探索更多有趣的玩法~</text>
+    </view>
+  </view>
+
+  <!-- 卡片区域 -->
+  <view class="cards-container">
+    <!-- 最近对话卡片 -->
+    <view class="card" wx:if="{{recentChats.length > 0}}">
+      <view class="card-inner">
+        <view class="card-header">
+          <text class="card-title">最近对话</text>
+        </view>
+        <view class="chat-list">
+          <view class="chat-item" 
+            wx:for="{{recentChats}}" 
+            wx:key="sessionId"
+            bindtap="onChatTap"
+            data-session-id="{{item.sessionId}}"
+            data-last-message="{{item.lastMessage}}">
+            <view class="chat-info">
+              <text class="chat-time">{{item.time}}</text>
+              <text class="chat-preview">{{item.lastMessage}}</text>
+            </view>
+            <view class="chat-arrow">›</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 示例问题卡片 -->
+    <view class="card">
+      <view class="card-inner">
+        <view class="card-header">
+          <text class="card-title">试试以下例子</text>
+          <view class="refresh-btn" bindtap="refreshQuestions">
+            <text>换一换</text>
+          </view>
+        </view>
+        <view class="examples-list">
+          <view class="example-item" 
+            wx:for="{{randomQuestions}}" 
+            wx:key="*this"
+            bindtap="onQuestionTap"
+            data-question="{{item}}">
+            <text>{{item}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 底部输入框部分 -->
+<view class="input-section">
+  <view class="input-tools">
+    <view class="tool-btn" bindtap="goToFaceAnalysis" style="position: relative;">
+      <image class="tool-icon" src="../../images/face-scan.png" mode="aspectFit"></image>
+      <view class="loading-overlay" wx:if="{{analyzing}}">
+        <view class="loading-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <input 
+    class="input-box" 
+    placeholder="输入你的问题或需求" 
+    value="{{inputMessage}}"
+    bindinput="onInputChange"
+    bindconfirm="sendMessage"
+  />
+  <button 
+    class="send-btn" 
+    style="width: 80rpx; height: 72rpx; line-height: 72rpx; padding: 0;"
+    bindtap="sendMessage"
+  >
+    发送
+  </button>
+</view>

@@ -1,0 +1,63 @@
+<view class="chat-container" style="background-image: url('{{backgroundImage}}')">
+  <!-- 聊天消息列表 -->
+  <scroll-view 
+    class="chat-list" 
+    scroll-y="true" 
+    scroll-into-view="{{scrollToMessage}}"
+    id="chatScroll"
+  >
+    <block wx:for="{{messageList}}" wx:key="index">
+      <view class="message-item {{item.type === 'user' ? 'message-user' : 'message-ai'}}" id="msg-{{index}}">
+        <view class="avatar-container">
+          <image class="avatar" src="{{item.type === 'user' ? '/images/user-avatar.png' : '/images/ai-avatar.png'}}" mode="aspectFill" />
+        </view>
+        <view class="message-wrapper">
+          <view class="message-content">
+            <text user-select="true">{{item.content}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 加载中动画 -->
+    <view class="loading" wx:if="{{loading}}">
+      <view class="loading-dots">
+        <view class="dot"></view>
+        <view class="dot"></view>
+        <view class="dot"></view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部输入区域 -->
+  <view class="bottom-area">
+    <!-- 输入框区域 -->
+    <view class="input-area">
+      <view class="input-wrapper">
+        <view class="camera-btn" bindtap="goToFaceAnalysis">
+          <image src="/images/camera.png" mode="aspectFit"/>
+          <view class="loading-overlay" wx:if="{{analyzing}}">
+            <view class="loading-dots">
+              <view class="dot"></view>
+              <view class="dot"></view>
+              <view class="dot"></view>
+            </view>
+          </view>
+        </view>
+        <input 
+          class="message-input" 
+          type="text" 
+          value="{{inputMessage}}"
+          placeholder="输入你的问题或需求"
+          bindinput="onInputChange"
+          bindconfirm="onInputConfirm"
+          bindfocus="onInputFocus"
+          bindblur="onInputBlur"
+        />
+        <button class="send-btn" bindtap="sendMessage" disabled="{{loading}}">
+          <text>发送</text>
+        </button>
+      </view>
+    </view>
+  </view>
+</view>
