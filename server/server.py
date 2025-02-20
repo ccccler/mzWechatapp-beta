@@ -69,13 +69,6 @@ def chat():
                 unified.session_id = session_id
                 logger.info(f"生成新会话ID: {session_id}")
                 
-                # 构建初始消息
-                initial_message = f"""根据面部分析，您的皮肤状况如下：
-
-{result}
-
-请问您想了解哪些具体的护肤建议？"""
-                
                 # 删除临时文件
                 try:
                     os.remove(temp_path)
@@ -83,9 +76,10 @@ def chat():
                 except Exception as e:
                     logger.error(f"删除临时文件失败: {str(e)}")
                 
+                # 修改这里：直接返回分析结果，不需要包装在初始消息中
                 response_data = {
                     "success": True,
-                    "message": initial_message,
+                    "message": result,  # 直接返回分析结果
                     "sessionId": session_id
                 }
                 logger.info(f"返回响应: {response_data}")
