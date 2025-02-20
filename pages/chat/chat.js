@@ -86,10 +86,38 @@ Page({
     });
 
     // 发送到服务器
-    this.sendToServer(userMessage.content);
-    
-    // 滚动到底部
-    this.scrollToBottom();
+    wx.request({
+      url: 'http://127.0.0.1:8000/chat',
+      method: 'POST',
+      data: {
+        question: userMessage.content,
+        sessionId: this.data.sessionId
+      },
+      success: (res) => {
+        // 创建一个新的AI消息对象
+        const newMessage = {
+          type: 'assistant',
+          content: '',  // 初始为空
+          fullContent: res.data  // 存储完整消息
+        };
+        
+        this.setData({
+          messageList: [...this.data.messageList, newMessage],
+          loading: false
+        }, () => {
+          // 开始逐字显示
+          this.typeMessage(this.data.messageList.length - 1, res.data);
+        });
+      },
+      fail: (error) => {
+        console.error('请求失败:', error);
+        this.setData({ loading: false });
+        wx.showToast({
+          title: '发送失败',
+          icon: 'none'
+        });
+      }
+    });
   },
 
   // 发送消息到服务器的统一方法
@@ -187,27 +215,30 @@ Page({
       sourceType: ['album', 'camera'],
       success: function(res) {
         that.setData({ analyzing: true });
-        console.log('选择图片成功:', res.tempFilePaths[0]);
         
         wx.uploadFile({
           url: 'http://127.0.0.1:8000/chat',
           filePath: res.tempFilePaths[0],
           name: 'image',
           success: function(uploadRes) {
-            console.log('上传成功，收到响应:', uploadRes.data);
             try {
               const response = JSON.parse(uploadRes.data);
               
-              // 添加到消息列表
+              // 创建一个新的消息对象
+              const newMessage = {
+                type: 'assistant',
+                content: '',  // 初始为空
+                fullContent: response.message  // 存储完整消息
+              };
+              
+              // 添加消息到列表
               that.setData({
-                messageList: [...that.data.messageList, {
-                  type: 'user',
-                  content: '[图片]'
-                }, {
-                  type: 'assistant',
-                  content: response.message
-                }],
-                analyzing: false
+                messageList: [...that.data.messageList, newMessage],
+                analyzing: false,
+                sessionId: response.sessionId || that.data.sessionId
+              }, () => {
+                // 开始逐字显示
+                that.typeMessage(that.data.messageList.length - 1, response.message);
               });
 
               // 更新最近对话记录
@@ -218,8 +249,9 @@ Page({
                 time: new Date().toLocaleTimeString()
               };
               
-              // 检查是否已存在相同sessionId的记录
-              const existingIndex = recentChats.findIndex(chat => chat.sessionId === that.data.sessionId);
+              const existingIndex = recentChats.findIndex(chat => 
+                chat.sessionId === that.data.sessionId
+              );
               if (existingIndex !== -1) {
                 recentChats[existingIndex] = sessionInfo;
               } else {
@@ -228,9 +260,6 @@ Page({
               
               wx.setStorageSync('recentChats', recentChats);
               
-              // 滚动到底部
-              that.scrollToBottom();
-
             } catch (error) {
               console.error('解析响应数据失败:', error);
               that.setData({ analyzing: false });
@@ -258,5 +287,29 @@ Page({
         });
       }
     });
+  },
+
+  // 添加新的方法：实现打字机效果
+  typeMessage: function(messageIndex, fullContent) {
+    const that = this;
+    let currentIndex = 0;
+    const typing = setInterval(() => {
+      if (currentIndex < fullContent.length) {
+        // 更新指定消息的内容
+        const messageList = that.data.messageList;
+        messageList[messageIndex].content = fullContent.slice(0, currentIndex + 1);
+        
+        that.setData({
+          messageList: messageList
+        }, () => {
+          // 每次更新后滚动到底部
+          that.scrollToBottom();
+        });
+        
+        currentIndex++;
+      } else {
+        clearInterval(typing);
+      }
+    }, 50); // 每50毫秒显示一个字符
   }
 });
