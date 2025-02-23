@@ -148,7 +148,7 @@ Page({
         
         // 上传图片到服务器
         wx.uploadFile({
-          url: 'http://127.0.0.1:8000/chat',  // 使用本地IP地址
+          url: 'http://8.152.213.187/chat',  // 使用本地IP地址
           filePath: tempFilePath,
           name: 'image',
           success(res) {

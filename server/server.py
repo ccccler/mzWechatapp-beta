@@ -11,7 +11,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+# 修改CORS配置，允许小程序域名
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # 初始化 UnifiedInterface
 try:
@@ -126,7 +127,10 @@ def chat():
     except Exception as e:
         logger.error(f"处理请求时出错: {str(e)}")
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
 
 if __name__ == '__main__':
     logger.info("启动服务器...")

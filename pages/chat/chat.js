@@ -87,13 +87,18 @@ Page({
 
     // 发送到服务器
     wx.request({
-      url: 'http://127.0.0.1:8000/chat',
+      url: 'http://8.152.213.187/chat',
       method: 'POST',
+      header: {
+        'content-type': 'application/json',
+        'Accept': 'application/json'
+      },
       data: {
         question: userMessage.content,
         sessionId: this.data.sessionId
       },
       success: (res) => {
+        console.log('请求成功:', res)
         // 创建一个新的AI消息对象
         const newMessage = {
           type: 'assistant',
@@ -109,8 +114,8 @@ Page({
           this.typeMessage(this.data.messageList.length - 1, res.data);
         });
       },
-      fail: (error) => {
-        console.error('请求失败:', error);
+      fail: (err) => {
+        console.error('请求失败:', err)
         this.setData({ loading: false });
         wx.showToast({
           title: '发送失败',
@@ -126,8 +131,12 @@ Page({
     console.log('发送消息到服务器:', message);
     
     wx.request({
-      url: 'http://127.0.0.1:8000/chat',
+      url: 'http://8.152.213.187/chat',
       method: 'POST',
+      header: {
+        'content-type': 'application/json',
+        'Accept': 'application/json'
+      },
       data: {
         question: message,
         sessionId: that.data.sessionId
@@ -217,7 +226,7 @@ Page({
         that.setData({ analyzing: true });
         
         wx.uploadFile({
-          url: 'http://127.0.0.1:8000/chat',
+          url: 'http://8.152.213.187/chat',
           filePath: res.tempFilePaths[0],
           name: 'image',
           success: function(uploadRes) {
