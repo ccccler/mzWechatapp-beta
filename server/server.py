@@ -6,14 +6,22 @@ import os
 import uuid
 import logging
 import time
-from werkzeug.contrib.fixers import ProxyFix
+# 删除 werkzeug.contrib.fixers 的导入
+# from werkzeug.contrib.fixers import ProxyFix
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app)
+# 删除 ProxyFix 的使用
+# app.wsgi_app = ProxyFix(app.wsgi_app)
+
+# 如果确实需要 ProxyFix 功能，使用新的方式：
+from werkzeug.middleware.proxy_fix import ProxyFix
+# 配置 ProxyFix，根据你的代理服务器配置调整参数
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 # 修改CORS配置，允许小程序域名
 CORS(app, resources={r"/*": {"origins": "*"}})
 
