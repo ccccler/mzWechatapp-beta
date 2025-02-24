@@ -153,7 +153,7 @@ Page({
         wx.showToast({
           title: '请求超时，请稍后重试',  // 更改错误提示
           icon: 'none',
-          duration: 2000
+          duration: 200000
         });
       }
     });
@@ -214,7 +214,7 @@ Page({
         wx.showToast({
           title: '请求超时，请稍后重试',  // 更改错误提示
           icon: 'none',
-          duration: 2000
+          duration: 200000
         });
         that.setData({ loading: false });
       }
