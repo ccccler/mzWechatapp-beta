@@ -15,41 +15,58 @@ Page({
     const that = this;
     console.log('chat页面加载');
     
-    // 获取事件通道
-    const eventChannel = this.getOpenerEventChannel();
-    eventChannel.on('acceptDataFromOpenerPage', function(data) {
-      console.log('收到消息数据:', data);
-      if (data && data.message) {
-        // 设置会话ID
-        that.setData({
-          sessionId: data.sessionId || `session_${Date.now()}`
+    try {
+      // 获取事件通道
+      const eventChannel = this.getOpenerEventChannel();
+      
+      // 检查eventChannel是否存在
+      if (eventChannel && typeof eventChannel.on === 'function') {
+        eventChannel.on('acceptDataFromOpenerPage', function(data) {
+          console.log('收到消息数据:', data);
+          if (data && data.message) {
+            // 设置会话ID
+            that.setData({
+              sessionId: data.sessionId || `session_${Date.now()}`
+            });
+            
+            if (data.type === 'face-analysis' || data.isHistoryChat) {
+              // 如果是面部分析结果或历史对话，显示为AI消息
+              that.setData({
+                messageList: [{
+                  type: 'assistant',
+                  content: data.message
+                }]
+              });
+            } else {
+              // 其他情况（如提示词点击）作为用户消息处理
+              const userMessage = {
+                type: 'user',
+                content: data.message
+              };
+              
+              that.setData({
+                messageList: [userMessage],
+                loading: true
+              });
+              
+              // 自动发送到服务器获取回复
+              that.sendToServer(data.message);
+            }
+          }
         });
-        
-        if (data.type === 'face-analysis' || data.isHistoryChat) {
-          // 如果是面部分析结果或历史对话，显示为AI消息
-          that.setData({
-            messageList: [{
-              type: 'assistant',
-              content: data.message
-            }]
-          });
-        } else {
-          // 其他情况（如提示词点击）作为用户消息处理
-          const userMessage = {
-            type: 'user',
-            content: data.message
-          };
-          
-          that.setData({
-            messageList: [userMessage],
-            loading: true
-          });
-          
-          // 自动发送到服务器获取回复
-          that.sendToServer(data.message);
-        }
+      } else {
+        // 如果没有事件通道，设置默认的sessionId
+        that.setData({
+          sessionId: `session_${Date.now()}`
+        });
       }
-    });
+    } catch (error) {
+      console.log('初始化事件通道失败:', error);
+      // 设置默认的sessionId
+      that.setData({
+        sessionId: `session_${Date.now()}`
+      });
+    }
   },
 
   onShow: function() {
