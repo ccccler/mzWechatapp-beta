@@ -175,6 +175,7 @@ Page({
         question: message,
         sessionId: that.data.sessionId
       },
+      timeout: 300000,  // 增加到5分钟
       success: function(res) {
         console.log('服务器响应:', res.data);  // 添加日志查看响应数据结构
         
@@ -223,7 +224,7 @@ Page({
         wx.showToast({
           title: '请求超时，请稍后重试',
           icon: 'none',
-          duration: 3000  // 提示显示3秒
+          duration: 3000
         });
         that.setData({ loading: false });
       }
@@ -330,7 +331,7 @@ Page({
             wx.showToast({
               title: '上传失败，请检查网络连接',
               icon: 'none',
-              duration: 3000  // 提示显示3秒
+              duration: 3000
             });
           }
         });

@@ -167,11 +167,11 @@ Page({
         const tempFilePath = res.tempFilePaths[0];
         console.log('选择图片成功:', tempFilePath);
         
-        // 上传图片到服务器
         wx.uploadFile({
-          url: 'http://8.152.213.187/chat',  // 使用本地IP地址
+          url: 'http://8.152.213.187/chat',
           filePath: tempFilePath,
           name: 'image',
+          timeout: 300000,  // 增加到5分钟
           success(res) {
             console.log('服务器响应:', res.data);
             try {
