@@ -97,6 +97,7 @@ Page({
         question: userMessage.content,
         sessionId: this.data.sessionId
       },
+      timeout: 30000,  // 增加超时时间到30秒
       success: (res) => {
         console.log('请求成功:', res)
         // 创建一个新的AI消息对象
@@ -118,8 +119,9 @@ Page({
         console.error('请求失败:', err)
         this.setData({ loading: false });
         wx.showToast({
-          title: '发送失败',
-          icon: 'none'
+          title: '请求超时，请稍后重试',  // 更改错误提示
+          icon: 'none',
+          duration: 2000
         });
       }
     });
@@ -141,6 +143,7 @@ Page({
         question: message,
         sessionId: that.data.sessionId
       },
+      timeout: 30000,  // 增加超时时间到30秒
       success: function(res) {
         console.log('服务器响应:', res.data);
         
@@ -177,8 +180,9 @@ Page({
       fail: function(error) {
         console.error('请求失败:', error);
         wx.showToast({
-          title: '发送失败',
-          icon: 'none'
+          title: '请求超时，请稍后重试',  // 更改错误提示
+          icon: 'none',
+          duration: 2000
         });
         that.setData({ loading: false });
       }
