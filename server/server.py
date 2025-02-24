@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect, url_for, render_template
+from flask import Flask, request, jsonify, redirect, url_for, render_template, abort
 from flask_cors import CORS
 from unified_interface import UnifiedInterface
 import traceback
@@ -6,6 +6,7 @@ import os
 import uuid
 import logging
 import time
+from functools import wraps
 # 删除 werkzeug.contrib.fixers 的导入
 # from werkzeug.contrib.fixers import ProxyFix
 
@@ -36,11 +37,24 @@ except Exception as e:
 # 新增：存储会话历史
 session_histories = {}
 
+def timeout_handler(timeout=600):
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            start_time = time.time()
+            result = f(*args, **kwargs)
+            if time.time() - start_time > timeout:
+                abort(504)  # Gateway Timeout
+            return result
+        return wrapped
+    return decorator
+
 @app.route('/')
 def home():
     return "服务器运行正常"
 
 @app.route('/chat', methods=['GET', 'POST'])
+@timeout_handler(timeout=600)
 def chat():
     if request.method == 'GET':
         return render_template('imagechat.html')
@@ -158,4 +172,4 @@ def chat():
 
 if __name__ == '__main__':
     logger.info("启动服务器...")
-    app.run(host='0.0.0.0', port=8000, debug=True, timeout=600)
+    app.run(host='0.0.0.0', port=8000, debug=True)
