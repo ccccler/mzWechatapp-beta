@@ -119,10 +119,17 @@ def chat():
                 for chunk in unified.analyze('text', question, stream=True):
                     response += chunk
                 logger.info(f"生成的回答: {response}")
-                return jsonify(response)
+                return jsonify({
+                    "success": True,
+                    "message": response,  # 包装在message字段中
+                    "sessionId": session_id
+                })
             except Exception as e:
                 logger.error(f"生成回答时出错: {str(e)}")
-                return jsonify({"error": f"生成回答失败: {str(e)}"}), 500
+                return jsonify({
+                    "success": False,
+                    "error": str(e)
+                }), 500
             
     except Exception as e:
         logger.error(f"处理请求时出错: {str(e)}")

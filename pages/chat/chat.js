@@ -114,14 +114,29 @@ Page({
         question: userMessage.content,
         sessionId: this.data.sessionId
       },
-      timeout: 30000,  // 增加超时时间到30秒
+      timeout: 30000,  // 设置30秒超时
       success: (res) => {
         console.log('请求成功:', res)
+        if (!res.data) {
+          console.error('响应数据为空');
+          return;
+        }
+        
+        let responseText = '';
+        if (typeof res.data === 'string') {
+          responseText = res.data;
+        } else if (res.data.message) {
+          responseText = res.data.message;
+        } else {
+          console.error('无效的响应格式:', res.data);
+          return;
+        }
+        
         // 创建一个新的AI消息对象
         const newMessage = {
           type: 'assistant',
           content: '',  // 初始为空
-          fullContent: res.data  // 存储完整消息
+          fullContent: responseText
         };
         
         this.setData({
@@ -129,7 +144,7 @@ Page({
           loading: false
         }, () => {
           // 开始逐字显示
-          this.typeMessage(this.data.messageList.length - 1, res.data);
+          this.typeMessage(this.data.messageList.length - 1, responseText);
         });
       },
       fail: (err) => {
