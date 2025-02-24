@@ -114,7 +114,7 @@ Page({
         question: userMessage.content,
         sessionId: this.data.sessionId
       },
-      timeout: 3000000,  // 设置30秒超时
+      timeout: 300000,  // 增加到5分钟
       success: (res) => {
         console.log('请求成功:', res)
         if (!res.data) {
@@ -151,9 +151,9 @@ Page({
         console.error('请求失败:', err)
         this.setData({ loading: false });
         wx.showToast({
-          title: '请求超时，请稍后重试',  // 更改错误提示
+          title: '请求超时，请稍后重试',
           icon: 'none',
-          duration: 200000
+          duration: 3000  // 提示显示3秒
         });
       }
     });
@@ -175,7 +175,7 @@ Page({
         question: message,
         sessionId: that.data.sessionId
       },
-      timeout: 30000,  // 增加超时时间到30秒
+      timeout: 300000,  // 增加到5分钟
       success: function(res) {
         console.log('服务器响应:', res.data);
         
@@ -212,9 +212,9 @@ Page({
       fail: function(error) {
         console.error('请求失败:', error);
         wx.showToast({
-          title: '请求超时，请稍后重试',  // 更改错误提示
+          title: '请求超时，请稍后重试',
           icon: 'none',
-          duration: 200000
+          duration: 3000  // 提示显示3秒
         });
         that.setData({ loading: false });
       }
@@ -265,6 +265,7 @@ Page({
           url: 'http://8.152.213.187/chat',
           filePath: res.tempFilePaths[0],
           name: 'image',
+          timeout: 300000,  // 增加到5分钟
           success: function(uploadRes) {
             try {
               const response = JSON.parse(uploadRes.data);
@@ -318,8 +319,9 @@ Page({
             console.error('上传失败:', error);
             that.setData({ analyzing: false });
             wx.showToast({
-              title: '上传失败',
-              icon: 'none'
+              title: '上传失败，请检查网络连接',
+              icon: 'none',
+              duration: 3000  // 提示显示3秒
             });
           }
         });
