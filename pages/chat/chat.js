@@ -114,7 +114,7 @@ Page({
         question: userMessage.content,
         sessionId: this.data.sessionId
       },
-      timeout: 30000,  // 设置30秒超时
+      timeout: 3000000,  // 设置30秒超时
       success: (res) => {
         console.log('请求成功:', res)
         if (!res.data) {
