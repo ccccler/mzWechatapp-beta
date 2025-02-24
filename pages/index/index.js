@@ -81,7 +81,15 @@ Page({
       success: function(res) {
         res.eventChannel.emit('acceptDataFromOpenerPage', { 
           message: question,
-          type: 'prompt'
+          type: 'prompt',
+          sessionId: `session_${Date.now()}` // 添加sessionId
+        });
+      },
+      fail: function(err) {
+        console.error('页面跳转失败:', err);
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
         });
       }
     });
@@ -102,8 +110,6 @@ Page({
     }
 
     const message = this.data.inputMessage;
-    
-    // 生成新的会话ID
     const sessionId = `session_${Date.now()}`;
     
     // 更新最近对话列表
@@ -126,11 +132,26 @@ Page({
     wx.navigateTo({
       url: `/pages/chat/chat`,
       success: function(res) {
-        res.eventChannel.emit('acceptDataFromOpenerPage', {
-          message: message,
-          sessionId: sessionId
+        // 确保事件通道存在
+        if (res.eventChannel) {
+          res.eventChannel.emit('acceptDataFromOpenerPage', {
+            message: message,
+            sessionId: sessionId,
+            type: 'text'  // 添加类型标识
+          });
+        }
+      },
+      fail: function(err) {
+        console.error('页面跳转失败:', err);
+        wx.showToast({
+          title: '页面跳转失败',
+          icon: 'none'
         });
-      }
+        // 恢复输入框内容
+        this.setData({
+          inputMessage: message
+        });
+      }.bind(this)
     });
   },
 
@@ -240,14 +261,46 @@ Page({
     const lastMessage = e.currentTarget.dataset.lastMessage;
     
     wx.navigateTo({
-      url: `/pages/chat/chat?sessionId=${sessionId}&lastMessage=${encodeURIComponent(lastMessage)}`,
-      events: {
-        acceptDataFromOpenerPage: function(data) {
-          console.log(data);
+      url: `/pages/chat/chat`,  // 移除URL参数
+      success: function(res) {
+        // 确保事件通道存在
+        if (res.eventChannel) {
+          res.eventChannel.emit('acceptDataFromOpenerPage', { 
+            sessionId: sessionId, 
+            message: lastMessage, 
+            isHistoryChat: true 
+          });
         }
       },
+      fail: function(err) {
+        console.error('页面跳转失败:', err);
+        wx.showToast({
+          title: '无法打开聊天记录',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  startChat: function(e) {
+    wx.navigateTo({
+      url: '/pages/chat/chat',
       success: function(res) {
-        res.eventChannel.emit('acceptDataFromOpenerPage', { sessionId: sessionId, message: lastMessage, isHistoryChat: true });
+        // 确保事件通道存在
+        if (res.eventChannel) {
+          res.eventChannel.emit('acceptDataFromOpenerPage', {
+            message: '欢迎使用AI助手，请问有什么可以帮您？',
+            isHistoryChat: true,
+            sessionId: `session_${Date.now()}` // 添加sessionId
+          });
+        }
+      },
+      fail: function(err) {
+        console.error('页面跳转失败:', err);
+        wx.showToast({
+          title: '无法开始新对话',
+          icon: 'none'
+        });
       }
     });
   }
