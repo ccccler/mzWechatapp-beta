@@ -175,15 +175,24 @@ Page({
         question: message,
         sessionId: that.data.sessionId
       },
-      timeout: 300000,  // 增加到5分钟
       success: function(res) {
-        console.log('服务器响应:', res.data);
+        console.log('服务器响应:', res.data);  // 添加日志查看响应数据结构
+        
+        // 处理响应数据
+        let responseText = '';
+        if (typeof res.data === 'string') {
+          responseText = res.data;
+        } else if (res.data.message) {
+          responseText = res.data.message;
+        } else {
+          responseText = JSON.stringify(res.data);  // 如果是其他格式，转换为字符串
+        }
         
         // 添加AI回复消息
         that.setData({
           messageList: [...that.data.messageList, {
             type: 'assistant',
-            content: res.data
+            content: responseText  // 使用处理后的响应文本
           }],
           loading: false
         });

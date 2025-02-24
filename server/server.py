@@ -139,16 +139,10 @@ def chat():
             unified.session_id = session_id
             
             # 获取回答
-            start_time = time.time()
             response = ""
             try:
                 for chunk in unified.analyze('text', question, stream=True):
-                    # 检查是否超时
-                    if time.time() - start_time > 580:  # 留出一些缓冲时间
-                        logger.warning("请求处理时间过长，提前返回部分结果")
-                        break
                     response += chunk
-                
                 logger.info(f"生成的回答: {response}")
                 return jsonify({
                     "success": True,
