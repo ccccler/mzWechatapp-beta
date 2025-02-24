@@ -5,12 +5,15 @@ import traceback
 import os
 import uuid
 import logging
+import time
+from werkzeug.contrib.fixers import ProxyFix
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app)
 # 修改CORS配置，允许小程序域名
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -114,14 +117,20 @@ def chat():
             unified.session_id = session_id
             
             # 获取回答
+            start_time = time.time()
             response = ""
             try:
                 for chunk in unified.analyze('text', question, stream=True):
+                    # 检查是否超时
+                    if time.time() - start_time > 580:  # 留出一些缓冲时间
+                        logger.warning("请求处理时间过长，提前返回部分结果")
+                        break
                     response += chunk
+                
                 logger.info(f"生成的回答: {response}")
                 return jsonify({
                     "success": True,
-                    "message": response,  # 包装在message字段中
+                    "message": response,
                     "sessionId": session_id
                 })
             except Exception as e:
@@ -141,4 +150,4 @@ def chat():
 
 if __name__ == '__main__':
     logger.info("启动服务器...")
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True, timeout=600)
