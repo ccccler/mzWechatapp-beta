@@ -81,7 +81,7 @@ class HistoryAwareRAG_simi:
             
             # retriever的部分，只在history_aware_retriever中使用过
             self.history_aware_retriever = create_history_aware_retriever(
-                self.llm, retriever, contextualize_q_prompt
+                self.llm2, retriever, contextualize_q_prompt
             )
 
             qa_prompt = ChatPromptTemplate.from_messages([
@@ -108,7 +108,7 @@ class HistoryAwareRAG_simi:
             
             
             question_answer_chain = create_stuff_documents_chain(
-                self.llm, 
+                self.llm2, 
                 qa_prompt,
             )
             
