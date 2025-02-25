@@ -44,6 +44,7 @@ def timeout_handler(timeout=600):
             start_time = time.time()
             result = f(*args, **kwargs)
             if time.time() - start_time > timeout:
+                logger.error(f"请求处理超时: {time.time() - start_time}秒")
                 abort(504)  # Gateway Timeout
             return result
         return wrapped
@@ -166,5 +167,9 @@ def chat():
 
 if __name__ == '__main__':
     logger.info("启动服务器...")
-    # 增加timeout参数
-    app.run(host='127.0.0.1', port=5000, threaded=True, request_timeout=600)
+    # 移除不支持的request_timeout参数
+    app.run(
+        host='127.0.0.1', 
+        port=5000, 
+        threaded=True
+    )
