@@ -166,4 +166,4 @@ def chat():
 
 if __name__ == '__main__':
     logger.info("启动服务器...")
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='127.0.0.1', port=5000)

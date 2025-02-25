@@ -104,7 +104,7 @@ Page({
 
     // 发送到服务器
     wx.request({
-      url: 'http://8.152.213.187/chat',
+      url: 'http://8.152.213.187/chat',  // 使用您的服务器IP
       method: 'POST',
       header: {
         'content-type': 'application/json',
@@ -165,7 +165,7 @@ Page({
     console.log('发送消息到服务器:', message);
     
     wx.request({
-      url: 'http://8.152.213.187/chat',
+      url: 'http://8.152.213.187/chat',  // 使用您的服务器IP
       method: 'POST',
       header: {
         'content-type': 'application/json',
