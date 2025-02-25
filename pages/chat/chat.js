@@ -114,7 +114,7 @@ Page({
         question: userMessage.content,
         sessionId: this.data.sessionId
       },
-      timeout: 300000,  // 增加到5分钟
+      timeout: 600000,  // 增加到10分钟
       success: (res) => {
         console.log('请求成功:', res)
         if (!res.data) {
@@ -175,7 +175,7 @@ Page({
         question: message,
         sessionId: that.data.sessionId
       },
-      timeout: 300000,  // 增加到5分钟
+      timeout: 600000,  // 增加到10分钟
       success: function(res) {
         console.log('服务器响应:', res.data);  // 添加日志查看响应数据结构
         
@@ -275,7 +275,7 @@ Page({
           url: 'http://8.152.213.187/chat',
           filePath: res.tempFilePaths[0],
           name: 'image',
-          timeout: 300000,  // 增加到5分钟
+          timeout: 600000,  // 增加到10分钟
           success: function(uploadRes) {
             try {
               const response = JSON.parse(uploadRes.data);

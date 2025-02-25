@@ -166,4 +166,5 @@ def chat():
 
 if __name__ == '__main__':
     logger.info("启动服务器...")
-    app.run(host='127.0.0.1', port=5000)
+    # 增加timeout参数
+    app.run(host='127.0.0.1', port=5000, threaded=True, request_timeout=600)
