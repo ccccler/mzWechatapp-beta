@@ -61,17 +61,24 @@ class HistoryAwareRAG_simi:
             raise FileNotFoundError(f"向量数据库索引文件夹不存在: {self.persist_directory}")
         
         try:
+            print(f"正在加载向量数据库，路径: {self.persist_directory}")
             self.vectorstore = FAISS.load_local(
                 self.persist_directory,
                 self.embeddings,
                 allow_dangerous_deserialization=True
             )
+            # 验证向量库是否正确加载
+            test_query = "测试查询"
+            test_result = self.vectorstore.similarity_search_with_score(test_query, k=1)
+            print(f"向量数据库加载成功，测试查询结果数量: {len(test_result)}")
         except Exception as e:
+            print(f"加载向量数据库失败: {str(e)}")
             raise Exception(f"加载向量数据库失败: {str(e)}")
 
     def _setup_chain(self):
         """设置RAG chain"""
-        if not hasattr(self, 'conversational_rag_chain'):
+        try:
+            print("开始设置RAG chain...")
             retriever = self.vectorstore.as_retriever(
                 search_kwargs={"k": 4}
             )
@@ -138,6 +145,11 @@ class HistoryAwareRAG_simi:
                 output_messages_key="answer",
             )
             
+            print("RAG chain 设置成功")
+            
+        except Exception as e:
+            print(f"设置RAG chain失败: {str(e)}")
+            raise Exception(f"设置RAG chain失败: {str(e)}")
 
     def _get_session_history(self, session_id: str) -> BaseChatMessageHistory:
         """获取或创建会话历史"""
@@ -154,11 +166,48 @@ class HistoryAwareRAG_simi:
     def query(self, question: str, session_id: str = "default"):
         """流式查询接口"""
         try:
-            # 首先检查相似度
-            results = self.vectorstore.similarity_search_with_score(question, k=4)
+            if not question or not isinstance(question, str):
+                print(f"无效的查询输入: {question}")
+                yield "请输入有效的问题。"
+                return
             
-            # 如果相似度大于阈值，设置上下文为"暂无相关数据"
-            if results and results[0][1] > 0.3:
+            print(f"开始查询，输入问题: {question}")
+            
+            # 验证向量库是否可用
+            if not hasattr(self, 'vectorstore') or self.vectorstore is None:
+                print("警告：向量数据库未正确初始化")
+                results = []
+            else:
+                try:
+                    results = self.vectorstore.similarity_search_with_score(question, k=4)
+                    print(f"向量检索结果数量: {len(results) if results else 0}")
+                except Exception as e:
+                    print(f"向量检索出错: {str(e)}")
+                    results = []
+            
+            # 确保results不为空且有效
+            if not results:
+                print("未找到相关结果，使用备用处理方式")
+                if not hasattr(self, 'conversational_rag_chain'):
+                    self._setup_chain()
+                    
+                response_stream = self.conversational_rag_chain.stream(
+                    {"input": question, "context": "暂无相关数据"},
+                    config={
+                        "configurable": {"session_id": session_id}
+                    }
+                )
+                
+                for chunk in response_stream:
+                    if "answer" in chunk:
+                        if hasattr(chunk["answer"], 'content'):
+                            yield chunk["answer"].content
+                        else:
+                            yield chunk["answer"]
+                return
+            
+            # 检查相似度阈值
+            if results[0][1] > 0.3:
                 if not hasattr(self, 'conversational_rag_chain'):
                     self._setup_chain()
                     
@@ -206,7 +255,7 @@ class HistoryAwareRAG_simi:
     
 
 # 使用示例
-if __name__ == "__main__":
+if __name__ == "__mqin__":
     rag = HistoryAwareRAG_simi()
     
     # 使用同一个session_id来维持对话连续性
