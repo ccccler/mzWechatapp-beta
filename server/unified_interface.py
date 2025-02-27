@@ -20,15 +20,8 @@ class UnifiedInterface:
         """
         try:
             if type == 'text':
-                # 添加错误处理
+                # 使用HistoryAwareRAG_simi处理文本
                 try:
-                    # 获取嵌入
-                    embeddings = self.get_embeddings(content)
-                    if embeddings is None:
-                        logger.error("获取嵌入失败")
-                        return "抱歉，我暂时无法处理您的问题。"
-                    
-                    # 使用HistoryAwareRAG_simi处理文本
                     if stream:
                         # 返回生成器，支持流式输出
                         return self.rag_analyzer.query(content, session_id=self.session_id)
@@ -44,6 +37,7 @@ class UnifiedInterface:
                 try:
                     return self.face_analyzer.analyze(image_path=content)
                 except Exception as e:
+                    logger.error(f"图片分析失败: {str(e)}")
                     return f"图片分析失败: {str(e)}"
             else:
                 return "不支持的输入类型，请使用 'text' 或 'image'"
@@ -56,12 +50,8 @@ if __name__ == "__main__":
     # 使用示例
     analyzer = UnifiedInterface()
     
-    # 分析图片示例
-    # result = analyzer.analyze('image', 'wxprograme/server/照片1.jpg')
-    # print("图片分析结果:", result)
-    
     # 分析文本示例（流式输出）
     print("文本分析结果:")
-    for chunk in analyzer.analyze('text', '请问如何护理油性肌肤？'):
+    for chunk in analyzer.analyze('text', '请问如何护理油性肌肤？', stream=True):
         print(chunk, end="", flush=True)
     print("\n")
