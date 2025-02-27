@@ -56,6 +56,19 @@ class HistoryAwareRAG_simi:
         with open(self.product_db_path, 'r', encoding='utf-8') as file:
             self.additional_prompt = file.read().strip()
 
+        # 检查并初始化向量数据库
+        if not os.path.exists(self.persist_directory):
+            raise FileNotFoundError(f"向量数据库索引文件夹不存在: {self.persist_directory}")
+        
+        try:
+            self.vectorstore = FAISS.load_local(
+                self.persist_directory,
+                self.embeddings,
+                allow_dangerous_deserialization=True
+            )
+        except Exception as e:
+            raise Exception(f"加载向量数据库失败: {str(e)}")
+
     def _setup_chain(self):
         """设置RAG chain"""
         if not hasattr(self, 'conversational_rag_chain'):
@@ -141,13 +154,6 @@ class HistoryAwareRAG_simi:
     def query(self, question: str, session_id: str = "default"):
         """流式查询接口"""
         try:
-            # 确保向量数据库已初始化
-            self.vectorstore = FAISS.load_local(
-                self.persist_directory,
-                self.embeddings,
-                allow_dangerous_deserialization=True
-            )
-            
             # 首先检查相似度
             results = self.vectorstore.similarity_search_with_score(question, k=4)
             
