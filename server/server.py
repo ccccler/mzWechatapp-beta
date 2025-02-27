@@ -142,26 +142,58 @@ def chat():
             # 获取回答
             response = ""
             try:
-                for chunk in unified.analyze('text', question, stream=True):
-                    response += chunk
+                # 添加错误处理和重试逻辑
+                max_retries = 3
+                retry_count = 0
+                
+                while retry_count < max_retries:
+                    try:
+                        for chunk in unified.analyze('text', question, stream=True):
+                            if chunk is None:
+                                logger.warning("收到空的响应块，跳过")
+                                continue
+                            response += chunk
+                        # 如果成功获取响应，跳出循环
+                        break
+                    except TypeError as e:
+                        logger.error(f"第 {retry_count + 1} 次尝试失败: {str(e)}")
+                        retry_count += 1
+                        if retry_count >= max_retries:
+                            raise Exception("多次尝试后仍然失败")
+                        time.sleep(1)  # 等待1秒后重试
+                
+                if not response:
+                    logger.error("生成回答为空")
+                    return jsonify({
+                        "success": False,
+                        "message": "抱歉，我现在无法正确理解您的问题，请稍后再试。",
+                        "sessionId": session_id
+                    })
+                
                 logger.info(f"生成的回答: {response}")
                 return jsonify({
                     "success": True,
                     "message": response,
                     "sessionId": session_id
                 })
+                
             except Exception as e:
                 logger.error(f"生成回答时出错: {str(e)}")
+                error_message = "抱歉，处理您的问题时出现错误。请稍后重试。"
+                if "multiple retries" in str(e).lower():
+                    error_message = "服务暂时不可用，请稍后再试。"
                 return jsonify({
                     "success": False,
-                    "error": str(e)
-                }), 500
+                    "message": error_message,
+                    "sessionId": session_id
+                })
             
     except Exception as e:
         logger.error(f"处理请求时出错: {str(e)}")
         traceback.print_exc()
         return jsonify({
             "success": False,
+            "message": "服务器处理请求时发生错误，请稍后重试。",
             "error": str(e)
         }), 500
 
