@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.chat_models import ChatZhipuAI
 import os
+import time
 
 class HistoryAwareRAG_simi:
     '''
@@ -15,7 +16,7 @@ class HistoryAwareRAG_simi:
     '''
     def __init__(self):
         self.openai_api_base = "https://xiaoai.plus/v1"
-        self.openai_api_key = "sk-dsOPRRFZZFjdLtL1IfiRfZZ8cGv125eP6YHetH6JGQAL9Alx"
+        self.openai_api_key = "sk-TotNw1nIUNJ6QKOvHaihightLOr68RDy1w4sXBvAasGKbUTU"
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.persist_directory = os.path.join(current_dir, "faiss_index")
@@ -60,20 +61,31 @@ class HistoryAwareRAG_simi:
         if not os.path.exists(self.persist_directory):
             raise FileNotFoundError(f"向量数据库索引文件夹不存在: {self.persist_directory}")
         
-        try:
-            print(f"正在加载向量数据库，路径: {self.persist_directory}")
-            self.vectorstore = FAISS.load_local(
-                self.persist_directory,
-                self.embeddings,
-                allow_dangerous_deserialization=True
-            )
-            # 验证向量库是否正确加载
-            test_query = "测试查询"
-            test_result = self.vectorstore.similarity_search_with_score(test_query, k=1)
-            print(f"向量数据库加载成功，测试查询结果数量: {len(test_result)}")
-        except Exception as e:
-            print(f"加载向量数据库失败: {str(e)}")
-            raise Exception(f"加载向量数据库失败: {str(e)}")
+        # 添加重试机制
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                print(f"正在加载向量数据库，第{retry_count + 1}次尝试，路径: {self.persist_directory}")
+                self.vectorstore = FAISS.load_local(
+                    self.persist_directory,
+                    self.embeddings,
+                    allow_dangerous_deserialization=True
+                )
+                
+                # 验证向量库是否正确加载
+                test_query = "测试查询"
+                test_result = self.vectorstore.similarity_search_with_score(test_query, k=1)
+                print(f"向量数据库加载成功，测试查询结果数量: {len(test_result)}")
+                break  # 如果成功加载，跳出循环
+                
+            except Exception as e:
+                retry_count += 1
+                print(f"第{retry_count}次加载失败: {str(e)}")
+                if retry_count >= max_retries:
+                    raise Exception(f"多次尝试加载向量数据库均失败: {str(e)}")
+                time.sleep(1)  # 添加延迟，避免立即重试
 
     def _setup_chain(self):
         """设置RAG chain"""
@@ -101,7 +113,7 @@ class HistoryAwareRAG_simi:
             
             # retriever的部分，只在history_aware_retriever中使用过
             self.history_aware_retriever = create_history_aware_retriever(
-                self.llm2, retriever, contextualize_q_prompt
+                self.llm, retriever, contextualize_q_prompt
             )
 
             qa_prompt = ChatPromptTemplate.from_messages([
@@ -128,7 +140,7 @@ class HistoryAwareRAG_simi:
             
             
             question_answer_chain = create_stuff_documents_chain(
-                self.llm2, 
+                self.llm, 
                 qa_prompt,
             )
             
@@ -171,20 +183,37 @@ class HistoryAwareRAG_simi:
                 yield "请输入有效的问题。"
                 return
             
-            print(f"开始查询，输入问题: {question}")
-            
-            # 验证向量库是否可用
+            # 验证向量库状态并尝试重新加载
             if not hasattr(self, 'vectorstore') or self.vectorstore is None:
-                print("警告：向量数据库未正确初始化")
-                results = []
-            else:
+                print("警告：向量数据库未初始化，尝试重新加载...")
+                try:
+                    self.vectorstore = FAISS.load_local(
+                        self.persist_directory,
+                        self.embeddings,
+                        allow_dangerous_deserialization=True
+                    )
+                except Exception as e:
+                    print(f"重新加载向量数据库失败: {str(e)}")
+                    yield "系统暂时无法访问知识库，请稍后再试。"
+                    return
+
+            # 添加重试机制进行查询
+            max_query_retries = 2
+            query_retry_count = 0
+            
+            while query_retry_count < max_query_retries:
                 try:
                     results = self.vectorstore.similarity_search_with_score(question, k=4)
-                    print(f"向量检索结果数量: {len(results) if results else 0}")
+                    print(f"向量检索成功，结果数量: {len(results)}")
+                    break
                 except Exception as e:
-                    print(f"向量检索出错: {str(e)}")
-                    results = []
-            
+                    query_retry_count += 1
+                    print(f"第{query_retry_count}次查询失败: {str(e)}")
+                    if query_retry_count >= max_query_retries:
+                        print("所有查询尝试均失败")
+                        results = []
+                    time.sleep(0.5)
+
             # 确保results不为空且有效
             if not results:
                 print("未找到相关结果，使用备用处理方式")
