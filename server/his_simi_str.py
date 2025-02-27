@@ -255,7 +255,7 @@ class HistoryAwareRAG_simi:
     
 
 # 使用示例
-if __name__ == "__mqin__":
+if __name__ == "__main__":
     rag = HistoryAwareRAG_simi()
     
     # 使用同一个session_id来维持对话连续性
