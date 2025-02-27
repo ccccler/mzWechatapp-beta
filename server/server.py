@@ -149,9 +149,7 @@ def chat():
                 while retry_count < max_retries:
                     try:
                         for chunk in unified.analyze('text', question, stream=True):
-                            if chunk is None:
-                                logger.warning("收到空的响应块，跳过")
-                                continue
+                            logger.debug(f"收到响应块: {chunk}")
                             response += chunk
                         # 如果成功获取响应，跳出循环
                         break
@@ -170,7 +168,7 @@ def chat():
                         "sessionId": session_id
                     })
                 
-                logger.info(f"生成的回答: {response}")
+                logger.info(f"完整响应: {response}")
                 return jsonify({
                     "success": True,
                     "message": response,
