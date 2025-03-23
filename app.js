@@ -167,6 +167,11 @@ App({
     // 从本地存储加载历史对话记录
     const chatHistory = wx.getStorageSync('recentChats') || [];
     this.globalData.recentChats = chatHistory;
+    
+    // 如果有回调函数，则执行
+    if (this.questionsCallback) {
+      this.questionsCallback(this.globalData.questions);
+    }
   },
   
   globalData: {

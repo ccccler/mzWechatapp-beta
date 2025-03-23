@@ -10,25 +10,23 @@ Page({
   },
 
   onLoad: function() {
-    // 直接从app.globalData获取问题数据
     const app = getApp();
-    const questions = app.globalData.questions;
     
-    console.log('获取到的问题数据:', questions); // 添加调试日志
-    
-    if (questions && questions.length) {
+    if (app.globalData.questions && app.globalData.questions.length) {
       this.setData({
-        allQuestions: questions
+        allQuestions: app.globalData.questions
       }, () => {
-        console.log('设置allQuestions后:', this.data.allQuestions); // 添加调试日志
         this.refreshQuestions();
       });
     } else {
-      console.error('没有获取到问题数据或数据为空'); // 添加调试日志
-      wx.showToast({
-        title: '加载问题失败',
-        icon: 'none'
-      });
+      // 设置回调函数
+      app.questionsCallback = questions => {
+        this.setData({
+          allQuestions: questions
+        }, () => {
+          this.refreshQuestions();
+        });
+      }
     }
     
     this.loadRecentChats();
