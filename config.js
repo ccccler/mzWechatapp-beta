@@ -10,7 +10,7 @@ const config = {
 };
 
 // 设置当前环境
-const currentEnv = 'development';  // 或 'production'
+const currentEnv = 'development';  // 确保使用开发环境
 
 export default {
   apiUrl: config[currentEnv].apiUrl,
