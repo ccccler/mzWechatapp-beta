@@ -2,10 +2,22 @@ import { questions } from './data/questions';
 
 App({
   onLaunch: function() {
+    // 初始化全局数据
+    this.globalData = {
+      questions: questions,
+      pendingMessage: null,
+      recentChats: [],
+      maxRecentChats: 3
+    };
+
     // 从本地存储加载历史对话记录
     const chatHistory = wx.getStorageSync('recentChats') || [];
     this.globalData.recentChats = chatHistory;
-    this.globalData.questions = questions;
+
+    // 如果页面已经等待数据，则执行回调
+    if (this.questionsReadyCallback) {
+      this.questionsReadyCallback();
+    }
   },
   
   globalData: {

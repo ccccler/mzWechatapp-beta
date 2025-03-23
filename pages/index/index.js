@@ -1,6 +1,8 @@
 import config from '../../config';
 import questionData from './questions';
 
+const app = getApp();
+
 Page({
   data: {
     randomQuestions: [],
@@ -11,12 +13,25 @@ Page({
   },
 
   onLoad: function() {
-    const app = getApp();
-    this.setData({
-      allQuestions: app.globalData.questions
-    }, () => {
-      this.refreshQuestions();
-    });
+    // 添加延时确保 app 实例已经准备好
+    if (app && app.globalData && app.globalData.questions) {
+      this.setData({
+        allQuestions: app.globalData.questions
+      }, () => {
+        this.refreshQuestions();
+      });
+    } else {
+      // 如果 globalData 还没准备好，使用回调
+      if (app) {
+        app.questionsReadyCallback = () => {
+          this.setData({
+            allQuestions: app.globalData.questions
+          }, () => {
+            this.refreshQuestions();
+          });
+        }
+      }
+    }
     
     this.loadRecentChats();
   },
@@ -34,16 +49,13 @@ Page({
 
   refreshQuestions: function() {
     const questions = this.data.allQuestions;
-    
     if (!questions || !questions.length) {
-      console.error('问题数据为空');
+      console.error('refreshQuestions: 问题数据为空');
       return;
     }
     
     // 随机选择3个问题
     let indices = Array.from({length: questions.length}, (_, i) => i);
-    
-    // Fisher-Yates 洗牌算法
     for (let i = indices.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [indices[i], indices[j]] = [indices[j], indices[i]];
