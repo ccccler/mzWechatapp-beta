@@ -1,7 +1,7 @@
-<view class="container" style="background-image: url('/images/chat-bg.jpg')">
+<view class="container" style="background-image: url('/mzWechatapp-beta/images/chat-bg.jpg')">
   <!-- AI头像和介绍 -->
   <view class="ai-intro">
-    <image class="ai-avatar" src="/images/ai-avatar.png" mode="aspectFit"></image>
+    <image class="ai-avatar" src="/mzWechatapp-beta/images/ai-avatar.png" mode="aspectFit"></image>
     <view class="intro-text">
       <text class="greeting">您好，我是您的智能美妆助手</text>
       <text class="description">可以叫我小美，我具备肤质识别、皮肤问题检测、护肤品推荐等能力。期待与您共同探索更多有趣的玩法~</text>

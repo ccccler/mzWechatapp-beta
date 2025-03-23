@@ -8,7 +8,7 @@ Page({
     loading: false,
     scrollToMessage: '',
     sessionId: '',
-    backgroundImage: '/images/chat-bg.jpg',
+    backgroundImage: '/mzWechatapp-beta/images/chat-bg.jpg',
     analyzing: false,
     messages: [],
     currentMessage: ''
@@ -82,7 +82,7 @@ Page({
 
     // 发送到服务器
     wx.request({
-      url: 'http://8.152.213.187/chat',  // 使用您的服务器IP
+      url: 'http://127.0.0.1:5000/chat',  // 使用您的服务器IP
       method: 'POST',
       header: {
         'content-type': 'application/json',
