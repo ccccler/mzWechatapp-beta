@@ -1,4 +1,5 @@
 import config from '../../config';
+import questionData from './questions.json';
 
 Page({
   data: {
@@ -10,24 +11,12 @@ Page({
   },
 
   onLoad: function() {
-    const app = getApp();
-    
-    if (app.globalData.questions && app.globalData.questions.length) {
-      this.setData({
-        allQuestions: app.globalData.questions
-      }, () => {
-        this.refreshQuestions();
-      });
-    } else {
-      // 设置回调函数
-      app.questionsCallback = questions => {
-        this.setData({
-          allQuestions: questions
-        }, () => {
-          this.refreshQuestions();
-        });
-      }
-    }
+    // 直接从json文件获取问题数据
+    this.setData({
+      allQuestions: questionData.questions
+    }, () => {
+      this.refreshQuestions();
+    });
     
     this.loadRecentChats();
   },
@@ -45,10 +34,9 @@ Page({
 
   refreshQuestions: function() {
     const questions = this.data.allQuestions;
-    console.log('refreshQuestions中的问题数据:', questions); // 添加调试日志
     
     if (!questions || !questions.length) {
-      console.error('refreshQuestions: 问题数据为空'); // 添加调试日志
+      console.error('问题数据为空');
       return;
     }
     
@@ -64,8 +52,6 @@ Page({
     const randomQuestions = indices
       .slice(0, 3)
       .map(index => questions[index]);
-    
-    console.log('选择的随机问题:', randomQuestions); // 添加调试日志
     
     this.setData({
       randomQuestions: randomQuestions
