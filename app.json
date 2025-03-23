@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/chat/chat"
+    "mzWechatapp-beta/pages/index/index",
+    "mzWechatapp-beta/pages/chat/chat"
   ],
   "window": {
     "backgroundTextStyle": "light",

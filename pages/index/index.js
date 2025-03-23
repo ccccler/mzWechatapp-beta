@@ -65,7 +65,7 @@ Page({
     // 保存当前输入框的内容
     wx.setStorageSync('inputMessage', this.data.inputMessage);
     wx.navigateTo({
-      url: '/pages/chat/chat',
+      url: '/mzWechatapp-beta/pages/chat/chat',
       success: function(res) {
         res.eventChannel.emit('acceptDataFromOpenerPage', { 
           message: question,
@@ -118,7 +118,7 @@ Page({
     
     // 跳转到聊天页面，并传递消息类型为 'stream'
     wx.navigateTo({
-      url: `/pages/chat/chat`,
+      url: `/mzWechatapp-beta/pages/chat/chat`,
       success: function(res) {
         if (res.eventChannel) {
           res.eventChannel.emit('acceptDataFromOpenerPage', {
@@ -179,7 +179,7 @@ Page({
                 
                 // 跳转到聊天页面
                 wx.navigateTo({
-                  url: `/pages/chat/chat`,
+                  url: `/mzWechatapp-beta/pages/chat/chat`,
                   success: function(res) {
                     // 传递消息数据到新页面，使用统一的 'image' 类型
                     res.eventChannel.emit('acceptDataFromOpenerPage', {
@@ -248,7 +248,7 @@ Page({
     const lastMessage = e.currentTarget.dataset.lastMessage;
     
     wx.navigateTo({
-      url: `/pages/chat/chat`,  // 移除URL参数
+      url: `/mzWechatapp-beta/pages/chat/chat`,  // 移除URL参数
       success: function(res) {
         // 确保事件通道存在
         if (res.eventChannel) {
@@ -271,7 +271,7 @@ Page({
 
   startChat: function(e) {
     wx.navigateTo({
-      url: '/pages/chat/chat',
+      url: '/mzWechatapp-beta/pages/chat/chat',
       success: function(res) {
         // 确保事件通道存在
         if (res.eventChannel) {

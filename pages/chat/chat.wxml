@@ -34,7 +34,7 @@
     <view class="input-area">
       <view class="input-wrapper">
         <view class="camera-btn" bindtap="goToFaceAnalysis">
-          <image src="/mzWechatapp-beta/images/ai-avatar.png" mode="aspectFit"/>
+          <image src="/mzWechatapp-beta/images/face-scan.png" mode="aspectFit"/>
           <view class="loading-overlay" wx:if="{{analyzing}}">
             <view class="loading-dots">
               <view class="dot"></view>
