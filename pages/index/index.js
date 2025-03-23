@@ -1,5 +1,5 @@
 import config from '../../config';
-import questionData from './questions';
+const questions = require('../../data/questions');
 
 const app = getApp();
 
@@ -7,32 +7,16 @@ Page({
   data: {
     randomQuestions: [],
     inputMessage: '',
-    allQuestions: [],
+    allQuestions: questions,
     analyzing: false,
     recentChats: []
   },
 
   onLoad: function() {
-    // 添加延时确保 app 实例已经准备好
-    if (app && app.globalData && app.globalData.questions) {
-      this.setData({
-        allQuestions: app.globalData.questions
-      }, () => {
-        this.refreshQuestions();
-      });
-    } else {
-      // 如果 globalData 还没准备好，使用回调
-      if (app) {
-        app.questionsReadyCallback = () => {
-          this.setData({
-            allQuestions: app.globalData.questions
-          }, () => {
-            this.refreshQuestions();
-          });
-        }
-      }
-    }
-    
+    console.log('页面加载');
+    console.log('初始 allQuestions:', this.data.allQuestions);
+    console.log('questions 模块:', questions);
+    this.refreshQuestions();
     this.loadRecentChats();
   },
 
@@ -49,6 +33,10 @@ Page({
 
   refreshQuestions: function() {
     const questions = this.data.allQuestions;
+    
+    // 添加调试日志
+    console.log('refreshQuestions中的questions:', questions);
+    
     if (!questions || !questions.length) {
       console.error('refreshQuestions: 问题数据为空');
       return;
@@ -64,6 +52,8 @@ Page({
     const randomQuestions = indices
       .slice(0, 3)
       .map(index => questions[index]);
+    
+    console.log('随机选择的问题:', randomQuestions); // 调试日志
     
     this.setData({
       randomQuestions: randomQuestions

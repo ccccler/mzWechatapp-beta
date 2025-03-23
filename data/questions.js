@@ -1,4 +1,4 @@
-export const questions = [
+module.exports = [
   "请你提供一些适合油皮的日常护肤方法和步骤。",
   "请帮我评估我现在的皮肤状态。",
   "请帮我推荐一些适合干皮的补水产品。",
@@ -10,8 +10,4 @@ export const questions = [
   "油皮使用含角鲨烷的产品对皮肤有什么副作用吗？",
   "眼霜和普通面霜有什么区别，为什么需要使用眼霜？"
   // ... 其他问题
-];
-
-export default {
-  questions
-}; 
+]; 
