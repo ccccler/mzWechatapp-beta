@@ -1,12 +1,12 @@
 {
   "pages": [
-    "mzWechatapp-beta/pages/index/index",
-    "mzWechatapp-beta/pages/chat/chat"
+    "pages/index/index",
+    "pages/chat/chat"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "智能美妆助手",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "AI护肤助手",
     "navigationBarTextStyle": "black"
   },
   "permission": {

@@ -1,11 +1,15 @@
+import { questions } from './data/questions';
+
 App({
   onLaunch: function() {
     // 从本地存储加载历史对话记录
     const chatHistory = wx.getStorageSync('recentChats') || [];
     this.globalData.recentChats = chatHistory;
+    this.globalData.questions = questions;
   },
   
   globalData: {
+    questions: [],
     pendingMessage: null,
     recentChats: [], 
     maxRecentChats: 3

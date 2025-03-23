@@ -11,9 +11,9 @@ Page({
   },
 
   onLoad: function() {
-    // 直接从js文件获取问题数据
+    const app = getApp();
     this.setData({
-      allQuestions: questionData.questions
+      allQuestions: app.globalData.questions
     }, () => {
       this.refreshQuestions();
     });
