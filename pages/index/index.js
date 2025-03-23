@@ -1,3 +1,5 @@
+import config from '../../config';
+
 Page({
   data: {
     randomQuestions: [],
@@ -128,16 +130,15 @@ Page({
       inputMessage: ''
     });
     
-    // 跳转到聊天页面
+    // 跳转到聊天页面，并传递消息类型为 'stream'
     wx.navigateTo({
       url: `/pages/chat/chat`,
       success: function(res) {
-        // 确保事件通道存在
         if (res.eventChannel) {
           res.eventChannel.emit('acceptDataFromOpenerPage', {
             message: message,
             sessionId: sessionId,
-            type: 'text'  // 添加类型标识
+            type: 'stream'  // 标记为流式输出类型
           });
         }
       },
@@ -168,7 +169,7 @@ Page({
         console.log('选择图片成功:', tempFilePath);
         
         wx.uploadFile({
-          url: 'http://8.152.213.187/chat',
+          url: `${config.apiUrl}/chat`,
           filePath: tempFilePath,
           name: 'image',
           timeout: 300000,  // 增加到5分钟

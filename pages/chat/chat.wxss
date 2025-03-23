@@ -6,6 +6,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  padding: 20rpx;
 }
 
 .chat-list {
@@ -193,4 +194,39 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+}
+
+.message {
+  margin: 20rpx 0;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  max-width: 80%;
+}
+
+.user {
+  background-color: #007AFF;
+  color: white;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.ai {
+  background-color: #F0F0F0;
+  color: #333;
+  align-self: flex-start;
+}
+
+.streaming {
+  position: relative;
+}
+
+.typing-indicator {
+  display: inline-block;
+  animation: typing 1s infinite;
+}
+
+@keyframes typing {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
 }

@@ -1,4 +1,5 @@
 const app = getApp();
+import config from '../../config';
 
 Page({
   data: {
@@ -8,10 +9,12 @@ Page({
     scrollToMessage: '',
     sessionId: '',
     backgroundImage: '/images/chat-bg.jpg',
-    analyzing: false
+    analyzing: false,
+    messages: [],
+    currentMessage: ''
   },
 
-  onLoad: function() {
+  onLoad: function(options) {
     const that = this;
     console.log('chat页面加载');
     
@@ -21,37 +24,12 @@ Page({
       
       // 检查eventChannel是否存在
       if (eventChannel && typeof eventChannel.on === 'function') {
-        eventChannel.on('acceptDataFromOpenerPage', function(data) {
-          console.log('收到消息数据:', data);
-          if (data && data.message) {
-            // 设置会话ID
-            that.setData({
-              sessionId: data.sessionId || `session_${Date.now()}`
-            });
-            
-            if (data.type === 'face-analysis' || data.isHistoryChat) {
-              // 如果是面部分析结果或历史对话，显示为AI消息
-              that.setData({
-                messageList: [{
-                  type: 'assistant',
-                  content: data.message
-                }]
-              });
-            } else {
-              // 其他情况（如提示词点击）作为用户消息处理
-              const userMessage = {
-                type: 'user',
-                content: data.message
-              };
-              
-              that.setData({
-                messageList: [userMessage],
-                loading: true
-              });
-              
-              // 自动发送到服务器获取回复
-              that.sendToServer(data.message);
-            }
+        eventChannel.on('acceptDataFromOpenerPage', (data) => {
+          if (data.type === 'stream') {
+            this.handleStreamMessage(data);
+          } else {
+            // 处理其他类型的消息
+            this.handleNormalMessage(data);
           }
         });
       } else {
@@ -368,5 +346,120 @@ Page({
         clearInterval(typing);
       }
     }, 50); // 每50毫秒显示一个字符
+  },
+
+  handleStreamMessage: function(data) {
+    const { message, sessionId } = data;
+    
+    console.log('开始处理消息:', message); // 调试日志
+
+    // 添加用户消息到对话列表
+    this.addMessage({
+        content: message,
+        type: 'user'
+    });
+
+    const ws = wx.connectSocket({
+        url: `ws://localhost:5000?sessionId=${sessionId}`,
+        success: () => {
+            console.log('WebSocket连接成功建立'); // 调试日志
+        },
+        fail: (err) => {
+            console.error('WebSocket连接失败:', err); // 调试日志
+        }
+    });
+
+    // 初始化AI回复消息
+    let aiResponse = '';
+    
+    ws.onOpen(function() {
+        console.log('连接已打开，发送消息...'); // 调试日志
+        ws.send({
+            data: JSON.stringify({
+                message: message,
+                sessionId: sessionId
+            }),
+            success: () => console.log('消息发送成功'), // 调试日志
+            fail: (err) => console.error('消息发送失败:', err) // 调试日志
+        });
+    });
+
+    ws.onMessage((res) => {
+        console.log('收到消息:', res.data); // 调试日志
+        try {
+            const data = JSON.parse(res.data);
+            if (data.chunk) {
+                aiResponse += data.chunk;
+                console.log('当前累积响应:', aiResponse); // 调试日志
+                
+                // 更新UI显示
+                this.setData({
+                    currentMessage: aiResponse
+                });
+            }
+        } catch (e) {
+            console.error('解析消息失败:', e);
+        }
+    });
+
+    ws.onClose(() => {
+        console.log('连接关闭，完整响应:', aiResponse); // 调试日志
+        if (aiResponse) {
+            this.addMessage({
+                content: aiResponse,
+                type: 'ai'
+            });
+            this.setData({
+                currentMessage: ''
+            });
+        }
+    });
+
+    ws.onError((err) => {
+        console.error('WebSocket错误:', err); // 调试日志
+    });
+  },
+
+  addMessage: function(message) {
+    const messages = this.data.messages;
+    messages.push(message);
+    this.setData({
+      messages: messages
+    });
+    // 滚动到底部
+    this.scrollToBottom();
+  },
+
+  handleNormalMessage: function(data) {
+    if (data && data.message) {
+      // 设置会话ID
+      this.setData({
+        sessionId: data.sessionId || `session_${Date.now()}`
+      });
+      
+      if (data.type === 'face-analysis' || data.isHistoryChat) {
+        // 如果是面部分析结果或历史对话，显示为AI消息
+        this.setData({
+          messageList: [{
+            type: 'assistant',
+            content: data.message
+          }]
+        });
+      } else {
+        // 其他情况（如提示词点击）作为用户消息处理
+        const userMessage = {
+          type: 'user',
+          content: data.message
+        };
+        
+        this.setData({
+          messageList: [userMessage],
+          loading: true
+        });
+        
+        // 自动发送到服务器获取回复
+        this.sendToServer(data.message);
+      }
+    }
   }
 });

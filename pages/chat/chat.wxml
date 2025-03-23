@@ -1,4 +1,4 @@
-<view class="chat-container" style="background-image: url('{{backgroundImage}}')">
+<view class="chat-container" style="background-image: url('{{backgroundImage}}')" id="chat-container">
   <!-- 聊天消息列表 -->
   <scroll-view 
     class="chat-list" 
@@ -6,18 +6,17 @@
     scroll-into-view="{{scrollToMessage}}"
     id="chatScroll"
   >
-    <block wx:for="{{messageList}}" wx:key="index">
-      <view class="message-item {{item.type === 'user' ? 'message-user' : 'message-ai'}}" id="msg-{{index}}">
-        <view class="avatar-container">
-          <image class="avatar" src="{{item.type === 'user' ? '/images/user-avatar.png' : '/images/ai-avatar.png'}}" mode="aspectFill" />
-        </view>
-        <view class="message-wrapper">
-          <view class="message-content">
-            <text user-select="true">{{item.content}}</text>
-          </view>
-        </view>
+    <block wx:for="{{messages}}" wx:key="index">
+      <view class="message {{item.type}}">
+        <text>{{item.content}}</text>
       </view>
     </block>
+
+    <!-- 正在生成的消息 -->
+    <view class="message ai streaming" wx:if="{{currentMessage}}">
+      <text>{{currentMessage}}</text>
+      <view class="typing-indicator">...</view>
+    </view>
 
     <!-- 加载中动画 -->
     <view class="loading" wx:if="{{loading}}">
