@@ -1,5 +1,5 @@
 import config from '../../config';
-import questionData from './questions.json';
+import questionData from './questions';
 
 Page({
   data: {
@@ -11,7 +11,7 @@ Page({
   },
 
   onLoad: function() {
-    // 直接从json文件获取问题数据
+    // 直接从js文件获取问题数据
     this.setData({
       allQuestions: questionData.questions
     }, () => {
