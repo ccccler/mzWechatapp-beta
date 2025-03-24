@@ -47,6 +47,15 @@ Page({
         sessionId: `session_${Date.now()}`
       });
     }
+
+    // 添加欢迎消息
+    this.setData({
+      messages: [{
+        id: 'welcome',
+        type: 'assistant',
+        content: '你好！我是AI护肤助手，请问有什么可以帮你？'
+      }]
+    });
   },
 
   onShow: function() {
@@ -86,7 +95,7 @@ Page({
       const aiMessage = {
         id: `msg_${Date.now()}`,
         type: 'assistant',
-        content: '我是AI助手，正在处理您的问题...'
+        content: '我正在处理您的问题，请稍候...'
       };
       
       this.setData({

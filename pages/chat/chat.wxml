@@ -11,22 +11,31 @@
       <block wx:for="{{messages}}" wx:key="id">
         <!-- 用户消息 -->
         <view wx:if="{{item.type === 'user'}}" class="message-item user">
-          <view class="message-content user">
-            <text>{{item.content}}</text>
+          <view class="message-wrapper">
+            <view class="bubble user">
+              <text>{{item.content}}</text>
+            </view>
+            <view class="avatar user">
+              <image src="/images/user-avatar.png" mode="aspectFill"></image>
+            </view>
           </view>
         </view>
         <!-- AI助手消息 -->
         <view wx:else class="message-item assistant">
-          <view class="avatar">AI</view>
-          <view class="message-content assistant">
-            <text>{{item.content}}</text>
+          <view class="message-wrapper">
+            <view class="avatar assistant">
+              <image src="/images/ai-avatar.png" mode="aspectFill"></image>
+            </view>
+            <view class="bubble assistant">
+              <text>{{item.content}}</text>
+            </view>
           </view>
         </view>
       </block>
     </view>
   </scroll-view>
 
-  <!-- 输入区域 -->
+  <!-- 底部输入区域 -->
   <view class="input-area">
     <view class="input-wrapper">
       <view class="camera-btn" bindtap="chooseImage">
