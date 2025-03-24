@@ -1,5 +1,5 @@
 const app = getApp();
-import config from '../../config';
+const config = require('../../config');
 
 Page({
   data: {
@@ -24,22 +24,18 @@ Page({
       // 获取事件通道
       const eventChannel = this.getOpenerEventChannel();
       
-      // 检查eventChannel是否存在
-      if (eventChannel && typeof eventChannel.on === 'function') {
-        eventChannel.on('acceptDataFromOpenerPage', (data) => {
-          if (data.type === 'stream') {
-            this.handleStreamMessage(data);
-          } else {
-            // 处理其他类型的消息
-            this.handleNormalMessage(data);
-          }
+      // 监听从index页面传来的数据
+      eventChannel.on('acceptDataFromOpenerPage', (data) => {
+        console.log('接收到的数据:', data);
+        this.setData({
+          sessionId: data.sessionId
         });
-      } else {
-        // 如果没有事件通道，设置默认的sessionId
-        that.setData({
-          sessionId: `session_${Date.now()}`
-        });
-      }
+
+        // 如果是首条消息，直接发送到后端
+        if (data.isFirstMessage) {
+          this.handleFirstMessage(data.message);
+        }
+      });
     } catch (error) {
       console.log('初始化事件通道失败:', error);
       // 设置默认的sessionId
@@ -76,103 +72,71 @@ Page({
   },
 
   sendMessage: function() {
-    if (!this.data.inputValue.trim()) return;
+    if (!this.data.inputValue.trim() || this.data.loading) {
+      return;
+    }
+
+    const message = this.data.inputValue;
     
-    const newMessage = {
+    // 添加用户消息
+    const userMessage = {
       id: `msg_${Date.now()}`,
       type: 'user',
-      content: this.data.inputValue
+      content: message
     };
-    
+
     this.setData({
-      messages: [...this.data.messages, newMessage],
+      messages: [...this.data.messages, userMessage],
       inputValue: '',
-      lastMessageId: newMessage.id
+      lastMessageId: userMessage.id,
+      loading: true
     });
-    
-    // 模拟AI回复
-    setTimeout(() => {
-      const aiMessage = {
-        id: `msg_${Date.now()}`,
-        type: 'assistant',
-        content: '我正在处理您的问题，请稍候...'
-      };
-      
-      this.setData({
-        messages: [...this.data.messages, aiMessage],
-        lastMessageId: aiMessage.id
-      });
-    }, 500);
+
+    // 发送到后端
+    this.sendToBackend(message);
   },
 
-  // 发送消息到服务器的统一方法
-  sendToServer: function(message) {
-    const that = this;
-    console.log('发送消息到服务器:', message);
-    
+  // 发送消息到后端
+  sendToBackend: function(message) {
     wx.request({
-      url: 'http://127.0.0.1:5000',  // 使用您的服务器IP
+      url: `${config.apiUrl}/chat`,
       method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'Accept': 'application/json'
-      },
       data: {
-        question: message,
-        sessionId: that.data.sessionId
+        message: message,
+        sessionId: this.data.sessionId
       },
-      timeout: 600000,  // 增加到10分钟
-      success: function(res) {
-        console.log('服务器响应:', res.data);  // 添加日志查看响应数据结构
-        
-        // 处理响应数据
-        let responseText = '';
-        if (typeof res.data === 'string') {
-          responseText = res.data;
-        } else if (res.data.message) {
-          responseText = res.data.message;
-        } else {
-          responseText = JSON.stringify(res.data);  // 如果是其他格式，转换为字符串
-        }
-        
-        // 添加AI回复消息
-        that.setData({
-          messageList: [...that.data.messageList, {
+      success: (res) => {
+        if (res.data.success) {
+          // 添加AI回复消息
+          const aiMessage = {
+            id: `msg_${Date.now()}`,
             type: 'assistant',
-            content: responseText  // 使用处理后的响应文本
-          }],
-          loading: false
-        });
-        
-        // 更新最近对话记录
-        let recentChats = wx.getStorageSync('recentChats') || [];
-        const sessionInfo = {
-          sessionId: that.data.sessionId,
-          lastMessage: message,
-          time: new Date().toLocaleTimeString()
-        };
-        
-        // 检查是否已存在相同sessionId的记录
-        const existingIndex = recentChats.findIndex(chat => chat.sessionId === that.data.sessionId);
-        if (existingIndex !== -1) {
-          recentChats[existingIndex] = sessionInfo;
+            content: res.data.response
+          };
+
+          this.setData({
+            messages: [...this.data.messages, aiMessage],
+            lastMessageId: aiMessage.id,
+            loading: false
+          });
         } else {
-          recentChats.unshift(sessionInfo);
+          wx.showToast({
+            title: '获取回复失败',
+            icon: 'none'
+          });
         }
-        
-        wx.setStorageSync('recentChats', recentChats);
-        
-        // 滚动到底部
-        that.scrollToBottom();
       },
-      fail: function(error) {
+      fail: (error) => {
         console.error('请求失败:', error);
         wx.showToast({
-          title: '请求超时，请稍后重试',
-          icon: 'none',
-          duration: 3000
+          title: '网络请求失败',
+          icon: 'none'
         });
-        that.setData({ loading: false });
+      },
+      complete: () => {
+        this.setData({
+          loading: false
+        });
       }
     });
   },
@@ -426,12 +390,12 @@ Page({
         });
         
         // 自动发送到服务器获取回复
-        this.sendToServer(data.message);
+        this.sendToBackend(data.message);
       }
     }
   },
 
-  onInput(e) {
+  onInput: function(e) {
     this.setData({
       inputValue: e.detail.value
     });
@@ -445,5 +409,24 @@ Page({
         console.log('选择的图片:', res.tempFilePaths[0]);
       }
     });
+  },
+
+  // 处理首条消息
+  handleFirstMessage: function(message) {
+    // 先显示用户消息
+    const userMessage = {
+      id: `msg_${Date.now()}`,
+      type: 'user',
+      content: message
+    };
+
+    this.setData({
+      messages: [userMessage],
+      lastMessageId: userMessage.id,
+      loading: true
+    });
+
+    // 发送到后端
+    this.sendToBackend(message);
   }
 });

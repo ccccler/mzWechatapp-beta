@@ -100,35 +100,24 @@ Page({
     const message = this.data.inputMessage;
     const sessionId = `session_${Date.now()}`;
     
-    // 更新最近对话列表
-    const sessionInfo = {
-      sessionId: sessionId,
-      lastMessage: message,
-      time: new Date().toLocaleTimeString()
-    };
-    
-    let recentChats = wx.getStorageSync('recentChats') || [];
-    recentChats.unshift(sessionInfo);
-    wx.setStorageSync('recentChats', recentChats);
-    
     // 清空输入框
     this.setData({
       inputMessage: ''
     });
     
-    // 跳转到聊天页面，并传递消息类型为 'stream'
+    // 跳转到聊天页面
     wx.navigateTo({
-      url: `/mzWechatapp-beta/pages/chat/chat`,
-      success: function(res) {
-        if (res.eventChannel) {
-          res.eventChannel.emit('acceptDataFromOpenerPage', {
-            message: message,
-            sessionId: sessionId,
-            type: 'stream'  // 标记为流式输出类型
-          });
-        }
+      url: '/pages/chat/chat',
+      success: (res) => {
+        // 通过eventChannel向chat页面传递数据
+        res.eventChannel.emit('acceptDataFromOpenerPage', {
+          message: message,
+          sessionId: sessionId,
+          type: 'stream',
+          isFirstMessage: true  // 标记这是首条消息
+        });
       },
-      fail: function(err) {
+      fail: (err) => {
         console.error('页面跳转失败:', err);
         wx.showToast({
           title: '页面跳转失败',
@@ -138,7 +127,7 @@ Page({
         this.setData({
           inputMessage: message
         });
-      }.bind(this)
+      }
     });
   },
 

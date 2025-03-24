@@ -28,6 +28,14 @@
           </view>
         </view>
       </block>
+      <!-- 加载状态 -->
+      <view wx:if="{{loading}}" class="loading-wrapper">
+        <view class="loading-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
     </view>
   </scroll-view>
 
@@ -44,11 +52,12 @@
         placeholder="输入你的问题"
         confirm-type="send"
         bindconfirm="sendMessage"
+        disabled="{{loading}}"
       />
       <button 
-        class="send-btn {{inputValue.trim() ? 'active' : ''}}"
+        class="send-btn {{inputValue.trim() && !loading ? 'active' : ''}}"
         bindtap="sendMessage"
-        disabled="{{!inputValue.trim()}}"
+        disabled="{{!inputValue.trim() || loading}}"
       >发送</button>
     </view>
   </view>
