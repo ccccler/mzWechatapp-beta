@@ -2,145 +2,122 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-image: url('/images/chat-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding: 20rpx;
+  background-color: #f5f5f5;
 }
 
-.chat-list {
+.message-list {
   flex: 1;
   padding: 20rpx;
   overflow-y: auto;
-  background-color: rgba(245, 245, 245, 0.6);
+}
+
+.messages-wrapper {
+  padding-bottom: 20rpx;
 }
 
 .message-item {
   display: flex;
   margin-bottom: 30rpx;
-  padding: 0 20rpx;
+  align-items: flex-start;
 }
 
-.message-user {
+.message-item.user {
   flex-direction: row-reverse;
 }
 
-.avatar-container {
-  flex-shrink: 0;
-  margin: 0 16rpx;
-}
-
 .avatar {
-  width: 80rpx;
-  height: 80rpx;
+  width: 70rpx;
+  height: 70rpx;
   border-radius: 50%;
-  background-color: #ffffff;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.message-wrapper {
-  max-width: 60%;
+  background: #007AFF;
+  color: white;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  margin: 0 20rpx;
 }
 
 .message-content {
-  padding: 20rpx;
-  word-wrap: break-word;
+  max-width: 70%;
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
   font-size: 28rpx;
   line-height: 1.5;
-  position: relative;
-  border-radius: 20rpx;
+  word-wrap: break-word;
 }
 
-.message-user .message-content {
-  background-color: rgba(149, 236, 105, 0.9);
-  margin-right: 20rpx;
+.message-content.assistant {
+  background-color: white;
+  margin-right: 90rpx;
+  border-top-left-radius: 4rpx;
 }
 
-.message-ai .message-content {
-  background-color: rgba(255, 255, 255, 0.9);
-  margin-left: 20rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.message-user .message-content::after {
-  content: '';
-  position: absolute;
-  right: -16rpx;
-  top: 24rpx;
-  border: 16rpx solid transparent;
-  border-left-color: rgba(149, 236, 105, 0.9);
-}
-
-.message-ai .message-content::after {
-  content: '';
-  position: absolute;
-  left: -16rpx;
-  top: 24rpx;
-  border: 16rpx solid transparent;
-  border-right-color: rgba(255, 255, 255, 0.9);
-}
-
-.bottom-area {
-  background: rgba(255, 255, 255, 0.95);
-  padding-top: 10rpx;
+.message-content.user {
+  background-color: #007AFF;
+  color: white;
+  margin-left: 90rpx;
+  border-top-right-radius: 4rpx;
 }
 
 .input-area {
   padding: 20rpx;
+  background-color: #ffffff;
   border-top: 1rpx solid #e5e5e5;
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
-  background-color: #fff;
+  background-color: #f5f5f5;
   border-radius: 36rpx;
-  padding: 0 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
+  padding: 0 20rpx;
 }
 
 .camera-btn {
-  width: 64rpx;
-  height: 64rpx;
+  width: 60rpx;
+  height: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  padding: 10rpx;
 }
 
 .camera-btn image {
-  width: 44rpx;
-  height: 44rpx;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .message-input {
   flex: 1;
   height: 72rpx;
-  font-size: 28rpx;
   padding: 0 20rpx;
-  background-color: transparent;
+  font-size: 28rpx;
+  background: transparent;
 }
 
 .send-btn {
-  width: 120rpx;
-  height: 64rpx;
-  line-height: 64rpx;
-  text-align: center;
-  border-radius: 32rpx;
-  background-color: #1890ff;
-  color: #fff;
-  font-size: 28rpx;
   margin: 0;
-  padding: 0;
+  padding: 0 30rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 28rpx;
+  color: #999;
+  background: transparent;
+  border: none;
 }
 
-.send-btn[disabled] {
-  background-color: #ccc;
-  opacity: 0.7;
+.send-btn.active {
+  color: #007AFF;
+}
+
+.send-btn::after {
+  border: none;
+}
+
+/* 适配 iPhone X 等机型的底部安全区域 */
+.input-area {
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .loading {

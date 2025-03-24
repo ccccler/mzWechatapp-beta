@@ -11,7 +11,9 @@ Page({
     backgroundImage: '/mzWechatapp-beta/images/chat-bg.jpg',
     analyzing: false,
     messages: [],
-    currentMessage: ''
+    currentMessage: '',
+    inputValue: '',
+    lastMessageId: ''
   },
 
   onLoad: function(options) {
@@ -65,76 +67,33 @@ Page({
   },
 
   sendMessage: function() {
-    const { inputMessage } = this.data;
-    if (!inputMessage.trim()) return;
-
-    // 添加用户消息
-    const userMessage = {
+    if (!this.data.inputValue.trim()) return;
+    
+    const newMessage = {
+      id: `msg_${Date.now()}`,
       type: 'user',
-      content: inputMessage
+      content: this.data.inputValue
     };
-
+    
     this.setData({
-      messageList: [...this.data.messageList, userMessage],
-      inputMessage: '',
-      loading: true
+      messages: [...this.data.messages, newMessage],
+      inputValue: '',
+      lastMessageId: newMessage.id
     });
-
-    // 发送到服务器
-    wx.request({
-      url: 'http://127.0.0.1:5000',  // 使用您的服务器IP
-      method: 'POST',
-      header: {
-        'content-type': 'application/json',
-        'Accept': 'application/json'
-      },
-      data: {
-        question: userMessage.content,
-        sessionId: this.data.sessionId
-      },
-      timeout: 600000,  // 增加到10分钟
-      success: (res) => {
-        console.log('请求成功:', res)
-        if (!res.data) {
-          console.error('响应数据为空');
-          return;
-        }
-        
-        let responseText = '';
-        if (typeof res.data === 'string') {
-          responseText = res.data;
-        } else if (res.data.message) {
-          responseText = res.data.message;
-        } else {
-          console.error('无效的响应格式:', res.data);
-          return;
-        }
-        
-        // 创建一个新的AI消息对象
-        const newMessage = {
-          type: 'assistant',
-          content: '',  // 初始为空
-          fullContent: responseText
-        };
-        
-        this.setData({
-          messageList: [...this.data.messageList, newMessage],
-          loading: false
-        }, () => {
-          // 开始逐字显示
-          this.typeMessage(this.data.messageList.length - 1, responseText);
-        });
-      },
-      fail: (err) => {
-        console.error('请求失败:', err)
-        this.setData({ loading: false });
-        wx.showToast({
-          title: '请求超时，请稍后重试',
-          icon: 'none',
-          duration: 3000  // 提示显示3秒
-        });
-      }
-    });
+    
+    // 模拟AI回复
+    setTimeout(() => {
+      const aiMessage = {
+        id: `msg_${Date.now()}`,
+        type: 'assistant',
+        content: '我是AI助手，正在处理您的问题...'
+      };
+      
+      this.setData({
+        messages: [...this.data.messages, aiMessage],
+        lastMessageId: aiMessage.id
+      });
+    }, 500);
   },
 
   // 发送消息到服务器的统一方法
@@ -461,5 +420,21 @@ Page({
         this.sendToServer(data.message);
       }
     }
+  },
+
+  onInput(e) {
+    this.setData({
+      inputValue: e.detail.value
+    });
+  },
+
+  chooseImage() {
+    wx.chooseImage({
+      count: 1,
+      success: (res) => {
+        // 处理选择的图片
+        console.log('选择的图片:', res.tempFilePaths[0]);
+      }
+    });
   }
 });

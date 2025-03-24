@@ -1,62 +1,50 @@
-<view class="chat-container" style="background-image: url('{{backgroundImage}}')" id="chat-container">
-  <!-- 聊天消息列表 -->
+<view class="chat-container">
+  <!-- 聊天记录区域 -->
   <scroll-view 
-    class="chat-list" 
     scroll-y="true" 
-    scroll-into-view="{{scrollToMessage}}"
-    id="chatScroll"
-  >
-    <block wx:for="{{messages}}" wx:key="index">
-      <view class="message {{item.type}}">
-        <text>{{item.content}}</text>
-      </view>
-    </block>
-
-    <!-- 正在生成的消息 -->
-    <view class="message ai streaming" wx:if="{{currentMessage}}">
-      <text>{{currentMessage}}</text>
-      <view class="typing-indicator">...</view>
-    </view>
-
-    <!-- 加载中动画 -->
-    <view class="loading" wx:if="{{loading}}">
-      <view class="loading-dots">
-        <view class="dot"></view>
-        <view class="dot"></view>
-        <view class="dot"></view>
-      </view>
+    class="message-list"
+    scroll-into-view="{{lastMessageId}}"
+    scroll-with-animation="true"
+    enhanced="true"
+    show-scrollbar="false">
+    <view class="messages-wrapper">
+      <block wx:for="{{messages}}" wx:key="id">
+        <!-- 用户消息 -->
+        <view wx:if="{{item.type === 'user'}}" class="message-item user">
+          <view class="message-content user">
+            <text>{{item.content}}</text>
+          </view>
+        </view>
+        <!-- AI助手消息 -->
+        <view wx:else class="message-item assistant">
+          <view class="avatar">AI</view>
+          <view class="message-content assistant">
+            <text>{{item.content}}</text>
+          </view>
+        </view>
+      </block>
     </view>
   </scroll-view>
 
-  <!-- 底部输入区域 -->
-  <view class="bottom-area">
-    <!-- 输入框区域 -->
-    <view class="input-area">
-      <view class="input-wrapper">
-        <view class="camera-btn" bindtap="goToFaceAnalysis">
-          <image src="/mzWechatapp-beta/images/face-scan.png" mode="aspectFit"/>
-          <view class="loading-overlay" wx:if="{{analyzing}}">
-            <view class="loading-dots">
-              <view class="dot"></view>
-              <view class="dot"></view>
-              <view class="dot"></view>
-            </view>
-          </view>
-        </view>
-        <input 
-          class="message-input" 
-          type="text" 
-          value="{{inputMessage}}"
-          placeholder="输入你的问题或需求"
-          bindinput="onInputChange"
-          bindconfirm="onInputConfirm"
-          bindfocus="onInputFocus"
-          bindblur="onInputBlur"
-        />
-        <button class="send-btn" bindtap="sendMessage" disabled="{{loading}}">
-          <text>发送</text>
-        </button>
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <view class="input-wrapper">
+      <view class="camera-btn" bindtap="chooseImage">
+        <image src="/images/camera.png" mode="aspectFit"></image>
       </view>
+      <input 
+        class="message-input"
+        value="{{inputValue}}"
+        bindinput="onInput"
+        placeholder="输入你的问题"
+        confirm-type="send"
+        bindconfirm="sendMessage"
+      />
+      <button 
+        class="send-btn {{inputValue.trim() ? 'active' : ''}}"
+        bindtap="sendMessage"
+        disabled="{{!inputValue.trim()}}"
+      >发送</button>
     </view>
   </view>
 </view>
