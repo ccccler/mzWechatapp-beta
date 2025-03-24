@@ -12,7 +12,7 @@
         <!-- 用户消息 -->
         <view wx:if="{{item.type === 'user'}}" id="{{item.id}}" class="message-item user">
           <view class="avatar">
-            <image src="/images/user-avatar.png" mode="aspectFill"></image>
+            <image src="/mzWechatapp-beta/images/user-avatar.png" mode="aspectFill"></image>
           </view>
           <view class="bubble user">
             <text>{{item.content}}</text>
@@ -21,7 +21,7 @@
         <!-- AI助手消息 -->
         <view wx:else id="{{item.id}}" class="message-item assistant">
           <view class="avatar">
-            <image src="/images/ai-avatar.png" mode="aspectFill"></image>
+            <image src="/mzWechatapp-beta/images/ai-avatar.png" mode="aspectFill"></image>
           </view>
           <view class="bubble assistant">
             <text>{{item.content}}</text>
@@ -43,7 +43,7 @@
   <view class="input-area">
     <view class="input-wrapper">
       <view class="camera-btn" bindtap="chooseImage">
-        <image src="/images/camera.png" mode="aspectFit"></image>
+        <image src="/mzWechatapp-beta/images/face-scan.png" mode="aspectFit"></image>
       </view>
       <input 
         class="message-input"

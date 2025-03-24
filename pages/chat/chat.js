@@ -182,7 +182,7 @@ Page({
         that.setData({ analyzing: true });
         
         wx.uploadFile({
-          url: 'http://8.152.213.187/chat',
+          url: 'http://127.0.0.1:5000/chat',
           filePath: res.tempFilePaths[0],
           name: 'image',
           timeout: 600000,  // 增加到10分钟
